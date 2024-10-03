@@ -1,0 +1,89 @@
+%% Time domain
+fs = 50000;        % Sampling frequency 
+f = 1000;          % Frequency of the sine wave
+T = 1;             % duration in time (which we'll calculate below to check)
+t = 0:1/fs:T-1/fs;    % time vector for 1 second
+A = 1;             % Amplitude of the signal
+
+sinus = A*sin(2*pi*f*t);                %1000Hz sine wave
+
+[y, fs_wav] = audioread('Itone.wav');   %load iiiii-tone
+
+y = y(1:fs_wav*1,:);                    %trims the recording to 1second
+
+y = resample(y, fs, fs_wav);            %Resample
+
+%Normalize
+sinus = sinus / max(abs(sinus));
+y = y / max(abs(y));
+
+%function to plot time domain 
+function timedomain(t, sinus, y, pos, text, xlims)
+    subplot(2, 1, pos);  
+    hold on;
+    plot(t, sinus, 'b', 'DisplayName', '1000 Hz Pure Tone');
+    plot(t, y, 'r', 'DisplayName', 'recorded iiii sound');
+    hold off;
+    title(text);
+    xlabel('Time (s)');
+    ylabel('Amplitude');
+    legend('show');
+    xlim(xlims);  % Set x-axis limits
+    grid on;
+end
+%plot full interval
+timedomain(t, sinus, y, 1, '1sec Time-Domain of pure 1000Hz tone and recorded', [0 1]);
+
+% plot zoomed-in, so that we can see where the recoridng peaks
+timedomain(t, sinus, y, 2, 'Zoomed-in Time-Domain of pure 1000Hz tone and recorded', [0.97 1]);
+
+%% Frequncy domain FFT
+N = fs/2;  % frequency resolution = fs/N = 50000/25000 = 2
+
+%take the first 25,000 samples of each signal
+sinus = sinus(1:N);
+y = y(1:N);
+
+n_sinus = length(sinus);
+n_wav = length(y);
+
+%FFT sine
+Y_sinus = fft(sinus);
+f_sinus = (0:n_sinus-1) * (fs / n_sinus);  
+
+%FFT wav
+Y_wav = fft(y);
+f_wav = (0:n_wav-1) * (fs / n_wav);  
+
+%Magnitude of the FFT(only positive)
+magnitude_sinus = abs(Y_sinus(1:floor(n_sinus/2)));
+magnitude_wav = abs(Y_wav(1:floor(n_wav/2)));
+
+%scale up by 2 because we just halfed the signal and normalize
+magnitude_sinus = (2 / n_sinus) * magnitude_sinus;
+magnitude_wav = (2 / n_wav) * magnitude_wav;
+
+%the the zero-frequency term is not symmetric so it shouldnt be multiplied
+%by 2
+magnitude_sinus(1) = magnitude_sinus(1) / 2;
+magnitude_wav(1) = magnitude_wav(1) / 2;
+
+%convert to logarithmic form(dB)
+magnitude_sinus_dB = 20 * log10(magnitude_sinus + eps);
+magnitude_wav_dB = 20 * log10(magnitude_wav + eps);
+
+% Frequency vectors for plotting positive frequencies
+f_1000Hz_pos = f_sinus(1:floor(n_sinus/2));
+f_wav_pos = f_wav(1:floor(n_wav/2));
+
+% Frequency-domain comparison of the sinus wave
+figure;
+hold on;
+plot(f_1000Hz_pos, magnitude_sinus_dB, 'b');
+plot(f_wav_pos, magnitude_wav_dB, 'r');
+hold off;
+title('Magnitude Spectrum of 1000 Hz pure tone and recorded');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (a.u.,dB)');
+xlim([0 3000]);
+grid on;
