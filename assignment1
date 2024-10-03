@@ -34,7 +34,7 @@ end
 %plot full interval
 timedomain(t, sinus, y, 1, '1sec Time-Domain of pure 1000Hz tone and recorded', [0 1]);
 
-% plot zoomed-in, so that we can see where the recoridng peaks
+% plot zoomed-in
 timedomain(t, sinus, y, 2, 'Zoomed-in Time-Domain of pure 1000Hz tone and recorded', [0.97 1]);
 
 %% Frequncy domain FFT
@@ -72,11 +72,11 @@ magnitude_wav(1) = magnitude_wav(1) / 2;
 magnitude_sinus_dB = 20 * log10(magnitude_sinus + eps);
 magnitude_wav_dB = 20 * log10(magnitude_wav + eps);
 
-% Frequency vectors for plotting positive frequencies
+%frequency vectors for plotting positive frequencies
 f_1000Hz_pos = f_sinus(1:floor(n_sinus/2));
 f_wav_pos = f_wav(1:floor(n_wav/2));
 
-% Frequency-domain comparison of the sinus wave
+%frequency-domain comparison of the sinus wave
 figure;
 hold on;
 plot(f_1000Hz_pos, magnitude_sinus_dB, 'b');
